@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>iPhone Check Pro</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Check Pro">
+<meta name="theme-color" content="#000">
+<link rel="manifest" href="manifest.json">
+<style>
+:root{--bg:#000;--card:#1c1c1e;--txt:#fff;--sub:#8e8e93;--blue:#0a84ff;--green:#32d74b;--red:#ff453a;--yellow:#ffd60a;--border:#2c2c2e}
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro",sans-serif;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--txt);-webkit-user-select:none;user-select:none}
+#app{width:100vw;height:100dvh;position:relative;overflow:hidden}
+
+/* Screens */
+.s{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .3s ease;z-index:1}
+.s.on{transform:translateX(0);z-index:2}
+
+/* Header */
+.hdr{padding:56px 20px 16px;flex-shrink:0}
+.hdr h1{font-size:28px;font-weight:700}
+.hdr p{color:var(--sub);font-size:14px;margin-top:2px}
+.nav{display:flex;align-items:center;justify-content:space-between;padding:52px 16px 12px;border-bottom:1px solid var(--border);flex-shrink:0}
+.nav h2{font-size:17px;font-weight:600}
+.nav button{background:0;border:0;color:var(--blue);font-size:16px;cursor:pointer;padding:4px 8px}
+
+/* Content */
+.body{flex:1;overflow-y:auto;padding:16px;-webkit-overflow-scrolling:touch}
+
+/* Buttons */
+.btn{width:100%;padding:16px;border-radius:13px;font-size:17px;font-weight:600;border:0;cursor:pointer;text-align:center;display:block;margin-bottom:12px}
+.btn-blue{background:var(--blue);color:#fff}
+.btn-air{background:linear-gradient(135deg,#0a84ff,#5ac8fa);color:#fff;font-size:18px;padding:18px;box-shadow:0 4px 16px rgba(10,132,255,.3)}
+.btn-dark{background:var(--card);color:var(--blue)}
+.btn-green{background:var(--green);color:#fff}
+.btn-red{background:var(--red);color:#fff}
+.btn:active{opacity:.85;transform:scale(.98)}
+
+/* Cards */
+.card{background:var(--card);border-radius:12px;padding:14px 16px;margin-bottom:10px}
+
+/* Test list items */
+.ti{background:var(--card);border-radius:12px;padding:14px 16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.ti:active{opacity:.8}
+.ti h3{font-size:16px;font-weight:600}
+.ti p{font-size:12px;color:var(--sub);margin-top:2px}
+.badge{padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700;white-space:nowrap}
+.badge-p{border:1px solid var(--border);color:var(--sub)}
+.badge-ok{background:var(--green);color:#fff}
+.badge-fail{background:var(--red);color:#fff}
+
+/* Progress */
+.prog{background:var(--card);border-radius:6px;height:6px;margin-bottom:6px;overflow:hidden}
+.prog-bar{height:100%;background:var(--blue);width:0%;transition:width .3s}
+.prog-txt{font-size:12px;color:var(--sub);text-align:right;margin-bottom:16px}
+
+/* Full screen test */
+.full{z-index:50}
+#colorTest{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#fff}
+#colorTest span{background:rgba(0,0,0,.5);color:#fff;padding:8px 20px;border-radius:20px;font-size:14px}
+#touchArea{width:100%;height:100%;position:relative;background:#000;display:none}
+#touchGrid{display:grid;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(10,1fr);width:100%;height:100%}
+.tblock{border:1px solid #222}.tblock.hit{background:var(--green);border-color:var(--green)}
+.float-btn{position:absolute;bottom:36px;left:16px;width:calc(100% - 32px);z-index:99}
+.verdict{position:absolute;bottom:0;left:0;width:100%;background:var(--card);padding:24px 16px;border-radius:20px 20px 0 0;box-shadow:0 -4px 20px rgba(0,0,0,.6);z-index:60;display:none}
+
+/* Camera */
+.cam-box{width:100%;height:280px;background:#000;border-radius:12px;overflow:hidden;margin-bottom:12px}
+.cam-box video{width:100%;height:100%;object-fit:cover}
+
+/* Audio */
+audio{width:100%;margin-top:8px}
+
+/* Report */
+.rrow{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:15px}
+.rrow:last-child{border-bottom:0}
+.rok{color:var(--green);font-weight:700}
+.rfail{color:var(--red);font-weight:700}
+.rpend{color:var(--yellow);font-weight:700}
+
+/* Instructions */
+.inst ul{list-style:none;padding:0}
+.inst li{padding:8px 0;border-bottom:1px solid var(--border);font-size:15px}
+.inst li:last-child{border-bottom:0}
+.inst li::before{content:"• ";color:var(--blue);font-weight:700}
+.inst p{font-size:14px;line-height:1.5;margin-bottom:8px}
+.warn{font-size:13px;color:var(--sub);margin-top:10px}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- HOME -->
+<div id="home" class="s on">
+<div class="hdr">
+<h1>iPhone Check Pro</h1>
+<p>Diagnóstico rápido para revenda</p>
+</div>
+<div class="body">
+<button class="btn btn-blue" style="font-size:19px;padding:18px" onclick="startDiag()">▶ Iniciar Diagnóstico</button>
+<button id="btnAir" class="btn btn-air" onclick="shareAirDrop()">📡 Enviar via AirDrop</button>
+<button class="btn btn-dark" onclick="go('history')">📋 Histórico</button>
+</div>
+</div>
+
+<!-- DIAGNOSTIC -->
+<div id="diag" class="s">
+<div class="nav">
+<button onclick="go('home')">‹ Voltar</button>
+<h2 id="diagTitle">Diagnóstico</h2>
+<button onclick="go('report')">Resultado</button>
+</div>
+<div class="body">
+<div class="prog"><div class="prog-bar" id="progBar"></div></div>
+<div class="prog-txt" id="progTxt">0/0</div>
+<div id="testList"></div>
+</div>
+</div>
+
+<!-- SCREEN TEST (full) -->
+<div id="screenTest" class="s full">
+<div id="colorTest" onclick="nextColor()"><span>Toque para trocar a cor</span></div>
+<div id="touchArea">
+<div id="touchGrid"></div>
+<button class="btn btn-blue float-btn" onclick="endTouch()">Concluir teste de toque</button>
+</div>
+<div class="verdict" id="screenVerdict">
+<p style="font-size:16px;font-weight:600;margin-bottom:12px">A tela e o toque estão OK?</p>
+<button class="btn btn-green" onclick="saveResult('screen','OK')">✅ Aprovado</button>
+<button class="btn btn-red" onclick="saveResult('screen','FALHA')">❌ Reprovado</button>
+</div>
+</div>
+
+<!-- CAMERA TEST -->
+<div id="camTest" class="s">
+<div class="nav">
+<button onclick="stopCam();go('diag')">☰ Lista</button>
+<h2>Câmeras e Flash</h2>
+<span></span>
+</div>
+<div class="body">
+<div class="cam-box"><video id="camVid" autoplay playsinline></video></div>
+<button class="btn btn-dark" onclick="flipCam()">🔄 Inverter Câmera</button>
+<button class="btn btn-dark" id="btnFlash" style="display:none" onclick="toggleFlash()">🔦 Ligar Flash</button>
+<div style="margin-top:20px">
+<button class="btn btn-green" onclick="stopCam();saveResult('camera','OK')">✅ Aprovado</button>
+<button class="btn btn-red" onclick="stopCam();saveResult('camera','FALHA')">❌ Reprovado</button>
+</div>
+</div>
+</div>
+
+<!-- AUDIO TEST -->
+<div id="audioTest" class="s">
+<div class="nav">
+<button onclick="go('diag')">☰ Lista</button>
+<h2>Áudio e Microfone</h2>
+<span></span>
+</div>
+<div class="body">
+<div class="card">
+<p style="font-weight:600;margin-bottom:8px">🎙️ Microfone</p>
+<button class="btn btn-dark" id="recBtn" onclick="smartMicTest()">Iniciar Leitura do Microfone</button>
+<div id="micLevel" style="height:12px; background:var(--bg); border-radius:6px; margin-top:12px; overflow:hidden; border:1px solid var(--border)">
+  <div id="micBar" style="height:100%; width:0%; background:var(--green); transition:width 0.1s;"></div>
+</div>
+<p id="micStatus" style="font-size:13px; color:var(--sub); margin-top:8px; text-align:center;">Fale algo para testar a captação...</p>
+</div>
+<div class="card">
+<p style="font-weight:600;margin-bottom:8px">🔊 Alto-falante</p>
+<button class="btn btn-dark" id="toneBtn" onclick="playTone()">Tocar som de teste</button>
+</div>
+<div style="margin-top:20px">
+<button class="btn btn-green" onclick="saveResult('audio','OK')">✅ Aprovado</button>
+<button class="btn btn-red" onclick="saveResult('audio','FALHA')">❌ Reprovado</button>
+</div>
+</div>
+</div>
+
+<!-- MANUAL TEST -->
+<div id="manualTest" class="s">
+<div class="nav">
+<button onclick="go('diag')">☰ Lista</button>
+<h2 id="manTitle">Teste</h2>
+<span></span>
+</div>
+<div class="body">
+<div class="card inst" id="manInst"></div>
+<div id="manExtra" style="display:none;margin-bottom:16px">
+<p style="font-size:13px;color:var(--sub);margin-bottom:6px" id="manExtraLabel"></p>
+<input type="text" id="manExtraVal" style="width:100%;background:var(--card);border:1px solid var(--border);color:#fff;padding:12px;border-radius:10px;font-size:16px">
+</div>
+<button class="btn btn-green" onclick="saveManual('OK')">✅ Aprovado</button>
+<button class="btn btn-red" onclick="saveManual('FALHA')">❌ Reprovado</button>
+</div>
+</div>
+
+<!-- REPORT -->
+<div id="report" class="s">
+<div class="nav">
+<button onclick="go('diag')">☰ Lista</button>
+<h2>Resultado</h2>
+<button onclick="shareReport()">📤</button>
+</div>
+<div class="body" id="reportBody"></div>
+</div>
+
+<!-- HISTORY -->
+<div id="history" class="s">
+<div class="nav">
+<button onclick="go('home')">‹ Voltar</button>
+<h2>Histórico</h2>
+<span></span>
+</div>
+<div class="body" id="histBody"></div>
+</div>
+
+</div>
+<script>
+// ===== DATABASE =====
+const DB={db:null,
+async open(){return new Promise((ok,no)=>{const r=indexedDB.open('icheckpro',1);r.onupgradeneeded=e=>e.target.result.createObjectStore('s',{keyPath:'id'});r.onsuccess=e=>{this.db=e.target.result;ok()};r.onerror=no})},
+async save(s){if(!this.db)await this.open();return new Promise((ok,no)=>{const t=this.db.transaction('s','readwrite');t.objectStore('s').put(s);t.oncomplete=ok;t.onerror=no})},
+async all(){if(!this.db)await this.open();return new Promise((ok,no)=>{const r=this.db.transaction('s').objectStore('s').getAll();r.onsuccess=()=>ok(r.result);r.onerror=no})},
+async del(id){if(!this.db)await this.open();return new Promise((ok,no)=>{const t=this.db.transaction('s','readwrite');t.objectStore('s').delete(id);t.oncomplete=ok;t.onerror=no})}
+};
+
+// ===== TESTS DEFINITION =====
+const TESTS=[
+{id:'screen',name:'Tela e Toque',go:'screenTest'},
+{id:'camera',name:'Câmeras e Flash',go:'camTest'},
+{id:'audio',name:'Áudio e Microfone',go:'audioTest'},
+{id:'vibration',name:'Vibração',manual:true},
+{id:'sensors',name:'Botões Físicos',manual:true},
+{id:'connectivity',name:'Wi-Fi / Bluetooth / Chip',manual:true},
+{id:'battery',name:'Bateria',manual:true},
+{id:'faceid',name:'Face ID / Touch ID',manual:true},
+{id:'icloud',name:'iCloud / IMEI',manual:true},
+];
+
+// ===== STATE =====
+let sess=null;
+
+// ===== NAVIGATION =====
+function go(id){
+ document.querySelectorAll('.s').forEach(s=>s.classList.remove('on'));
+ document.getElementById(id).classList.add('on');
+ if(id==='diag')renderTests();
+ if(id==='report')renderReport();
+ if(id==='history')renderHistory();
+}
+
+// ===== AUTOMATIC FLOW =====
+function runNextTest() {
+ if (!sess) return;
+ const nextTest = TESTS.find(t => sess.r[t.id] === '—');
+ if (nextTest) {
+  if (nextTest.go) {
+   go(nextTest.go);
+   if(nextTest.go === 'camTest') initCam();
+  } else {
+   openManual(nextTest.id);
+  }
+ } else {
+  go('report');
+ }
+}
+
+// ===== START =====
+async function startDiag(){
+ await DB.open();
+ sess={id:Date.now().toString(),date:new Date().toISOString(),r:{}};
+ TESTS.forEach(t=>sess.r[t.id]='—');
+ await DB.save(sess);
+ runNextTest(); // Inicia o fluxo semi-automático
+}
+
+// ===== RENDER TEST LIST =====
+function renderTests(){
+ if(!sess)return;
+ const c=document.getElementById('testList');c.innerHTML='';
+ let done=0;
+ TESTS.forEach(t=>{
+  const st=sess.r[t.id];
+  if(st!=='—')done++;
+  const cls=st==='OK'?'badge-ok':st==='FALHA'?'badge-fail':'badge-p';
+  const label=st==='OK'?'APROVADO':st==='FALHA'?'REPROVADO':'PENDENTE';
+  const d=document.createElement('div');d.className='ti';
+  d.innerHTML=`<div><h3>${t.name}</h3></div><span class="badge ${cls}">${label}</span>`;
+  d.onclick=()=>{
+   if(t.go)go(t.go);
+   else openManual(t.id);
+   if(t.go==='camTest')initCam();
+  };
+  c.appendChild(d);
+ });
+ const pct=Math.round(done/TESTS.length*100);
+ document.getElementById('progBar').style.width=pct+'%';
+ document.getElementById('progTxt').textContent=done+'/'+TESTS.length+' concluídos';
+}
+
+// ===== SAVE RESULT =====
+async function saveResult(id,val){
+ if(!sess)return;
+ sess.r[id]=val;
+ await DB.save(sess);
+ runNextTest(); // Avança automaticamente para o próximo
+}
+
+// ===== SCREEN TEST =====
+let colorIdx=0;
+const COLORS=['#fff','#000','#ff0000','#00ff00','#0000ff'];
+function nextColor(){
+ colorIdx++;
+ if(colorIdx<COLORS.length){
+  document.getElementById('colorTest').style.backgroundColor=COLORS[colorIdx];
+ }else{
+  document.getElementById('colorTest').style.display='none';
+  startTouch();
+ }
+}
+let blocksHit = 0;
+function startTouch(){
+ const area=document.getElementById('touchArea');area.style.display='block';
+ const grid=document.getElementById('touchGrid');grid.innerHTML='';
+ blocksHit = 0;
+ for(let i=0;i<50;i++){const b=document.createElement('div');b.className='tblock';grid.appendChild(b)}
+ const h=e=>{
+  e.preventDefault();const t=e.touches?e.touches[0]:e;
+  const el=document.elementFromPoint(t.clientX,t.clientY);
+  if(el&&el.classList.contains('tblock') && !el.classList.contains('hit')){
+   el.classList.add('hit');
+   blocksHit++;
+   if(blocksHit === 50) {
+    // Touch 100% successful, auto-approve
+    saveResult('screen','OK');
+   }
+  }
+ };
+ area.addEventListener('touchmove',h,{passive:false});
+ area.addEventListener('mousemove',e=>{if(e.buttons)h(e)});
+}
+function endTouch(){document.getElementById('screenVerdict').style.display='block'}
+
+// Reset screen test on open
+const origGoScreenTest=go;
+const _go=go;
+go=function(id){
+ if(id==='screenTest'){colorIdx=0;document.getElementById('colorTest').style.display='flex';document.getElementById('colorTest').style.backgroundColor='#fff';document.getElementById('touchArea').style.display='none';document.getElementById('screenVerdict').style.display='none'}
+ _go(id);
+};
+
+// ===== CAMERA =====
+let camStream=null,camFacing='environment',camTrack=null;
+async function initCam(){
+ stopCam();
+ try{
+  camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:camFacing}});
+  document.getElementById('camVid').srcObject=camStream;
+  camTrack=camStream.getVideoTracks()[0];
+  // Check flash
+  try{const c=camTrack.getCapabilities();document.getElementById('btnFlash').style.display=c&&c.torch?'block':'none'}catch(e){document.getElementById('btnFlash').style.display='none'}
+ }catch(e){alert('Câmera indisponível: '+e.message)}
+}
+function flipCam(){camFacing=camFacing==='environment'?'user':'environment';initCam()}
+function stopCam(){if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null;camTrack=null}}
+async function toggleFlash(){
+ if(!camTrack)return;
+ try{const on=!camTrack.getSettings().torch;await camTrack.applyConstraints({advanced:[{torch:on}]});document.getElementById('btnFlash').textContent=on?'🔦 Desligar Flash':'🔦 Ligar Flash'}
+ catch(e){alert('Flash não suportado.')}
+}
+
+// ===== AUDIO =====
+let micStream=null, audioCtx=null;
+async function smartMicTest(){
+ const btn = document.getElementById('recBtn');
+ if(micStream) {
+  micStream.getTracks().forEach(t=>t.stop());
+  micStream = null;
+  if(audioCtx) { audioCtx.close(); audioCtx=null; }
+  btn.textContent = 'Iniciar Leitura do Microfone';
+  document.getElementById('micBar').style.width = '0%';
+  document.getElementById('micStatus').textContent = 'Fale algo para testar a captação...';
+  document.getElementById('micStatus').style.color = 'var(--sub)';
+  return;
+ }
+ try {
+  micStream = await navigator.mediaDevices.getUserMedia({audio:true});
+  btn.textContent = '⏹ Parar Leitura';
+  const AC = window.AudioContext || window.webkitAudioContext;
+  audioCtx = new AC();
+  const source = audioCtx.createMediaStreamSource(micStream);
+  const analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 256;
+  source.connect(analyser);
+  const dataArray = new Uint8Array(analyser.frequencyBinCount);
+  
+  function checkLevel() {
+   if(!micStream) return;
+   analyser.getByteFrequencyData(dataArray);
+   let sum = 0;
+   for(let i=0; i<dataArray.length; i++) sum += dataArray[i];
+   let avg = sum / dataArray.length;
+   let pct = Math.min(100, Math.round((avg / 128) * 100));
+   document.getElementById('micBar').style.width = pct + '%';
+   
+   if(pct > 30) {
+    document.getElementById('micStatus').textContent = '✅ Captação detectada com sucesso!';
+    document.getElementById('micStatus').style.color = 'var(--green)';
+   }
+   requestAnimationFrame(checkLevel);
+  }
+  checkLevel();
+ } catch(e) {
+  alert('Microfone indisponível: ' + e.message);
+ }
+}
+let toneCtx=null,toneOsc=null,toneIdx=0;
+const FREQS=[250,440,1000,4000,8000];
+function playTone(){
+ const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return alert('Áudio não suportado.');
+ if(toneOsc){toneOsc.stop();toneOsc=null;toneIdx++;if(toneIdx>=FREQS.length){toneIdx=0;document.getElementById('toneBtn').textContent='Tocar som de teste';if(toneCtx){toneCtx.close();toneCtx=null}return}}
+ if(!toneCtx||toneCtx.state==='closed')toneCtx=new AC();
+ const f=FREQS[toneIdx],o=toneCtx.createOscillator();o.type='sine';o.frequency.value=f;o.connect(toneCtx.destination);o.start();toneOsc=o;
+ document.getElementById('toneBtn').textContent=`Tocando ${f}Hz — toque para avançar`;
+ setTimeout(()=>{if(toneOsc===o)playTone()},2000);
+}
+
+// ===== VIBRATION =====
+function testVibrate(){if('vibrate' in navigator){navigator.vibrate([200,100,200,100,400]);return true}return false}
+
+// ===== MANUAL TESTS =====
+let manId=null;
+function openManual(id){
+ manId=id;
+ const title=document.getElementById('manTitle');
+ const inst=document.getElementById('manInst');
+ const extra=document.getElementById('manExtra');
+ extra.style.display='none';
+
+ if(id==='vibration'){
+  title.textContent='Vibração';
+  let vibBtn='';
+  if('vibrate' in navigator) vibBtn='<button class="btn btn-dark" style="margin-top:10px" onclick="testVibrate()">📳 Vibrar agora</button>';
+  else vibBtn='<p class="warn">⚠️ Vibration API não disponível neste navegador. Teste pela chave de silêncio.</p>';
+  inst.innerHTML='<p>Verifique se o motor de vibração funciona.</p>'+vibBtn;
+ }
+ else if(id==='sensors'){
+  title.textContent='Botões Físicos';
+  inst.innerHTML='<p>Teste cada botão:</p><ul><li>Volume (+) e (−)</li><li>Botão lateral / bloqueio</li><li>Chave silêncio / Botão de Ação</li><li>Brilho automático (cubra o sensor)</li><li>Rotação da tela</li></ul>';
+ }
+ else if(id==='connectivity'){
+  title.textContent='Conectividade';
+  let connInfo = '';
+  if(navigator.connection) {
+      let type = navigator.connection.effectiveType || navigator.connection.type || 'desconhecido';
+      connInfo = ` (Detectado: <b>${type.toUpperCase()}</b>)`;
+  }
+  inst.innerHTML=`<p>Internet: <b style="color:${navigator.onLine?'var(--green)':'var(--red)'}">${navigator.onLine?'✅ Online':'❌ Offline'}</b>${connInfo}</p><ul><li>Wi-Fi conecta e navega?</li><li>Bluetooth encontra dispositivos?</li><li>Chip / eSIM faz ligações?</li><li>Dados móveis funcionam?</li></ul>`;
+ }
+ else if(id==='battery'){
+  title.textContent='Bateria';
+  inst.innerHTML='<p>Acesse <b>Ajustes → Bateria → Saúde da Bateria</b></p><ul><li>Capacidade Máxima (%)</li><li>Contagem de ciclos</li><li>Aviso de manutenção?</li><li>Bateria inchada ou aquecendo?</li></ul><p class="warn">⚠️ O navegador não tem acesso à saúde da bateria. Consulte nos Ajustes do iOS.</p>';
+  extra.style.display='block';
+  document.getElementById('manExtraLabel').textContent='Capacidade / Ciclos / Obs:';
+ }
+ else if(id==='faceid'){
+  title.textContent='Face ID / Touch ID';
+  inst.innerHTML='<p>Acesse <b>Ajustes → Face ID e Código</b></p><ul><li>Cadastre um rosto / digital</li><li>Funciona para desbloquear?</li><li>Aparece erro na câmera TrueDepth?</li></ul><p class="warn">⚠️ O navegador não testa o Face ID. Use os Ajustes do iOS.</p>';
+ }
+ else if(id==='icloud'){
+  title.textContent='iCloud / IMEI';
+  inst.innerHTML='<p style="color:var(--red);font-weight:600">⚠️ Verificação essencial antes de comprar!</p><ul><li>"Buscar iPhone" desativado?</li><li>Vendedor saiu do Apple ID?</li><li>Pode apagar em Ajustes → Geral → Redefinir?</li><li>IMEI sem restrições?</li></ul>';
+  extra.style.display='block';
+  document.getElementById('manExtraLabel').textContent='IMEI (registro local):';
+ }
+ go('manualTest');
+}
+async function saveManual(val){
+ const v=document.getElementById('manExtraVal').value;
+ if(v&&sess)sess.r[manId+'_obs']=v;
+ document.getElementById('manExtraVal').value='';
+ saveResult(manId,val);
+}
+
+// ===== REPORT =====
+function renderReport(){
+ if(!sess)return;
+ const b=document.getElementById('reportBody');
+ const ok=Object.values(sess.r).filter(v=>v==='OK').length;
+ const fail=Object.values(sess.r).filter(v=>v==='FALHA').length;
+ const pend=TESTS.length-ok-fail;
+ let status='✅ APROVADO',stColor='var(--green)';
+ if(fail>0){status='🚫 RISCO';stColor='var(--red)'}
+ else if(pend>0){status='⚠️ INCOMPLETO';stColor='var(--yellow)'}
+
+ let html=`<div class="card" style="text-align:center;background:${stColor};padding:20px"><p style="font-size:20px;font-weight:700;color:#fff">${status}</p><p style="color:rgba(255,255,255,.8);font-size:14px;margin-top:4px">${ok} aprovados · ${fail} reprovados · ${pend} pendentes</p></div>`;
+ html+='<div class="card">';
+ TESTS.forEach(t=>{
+  const v=sess.r[t.id];
+  const cls=v==='OK'?'rok':v==='FALHA'?'rfail':'rpend';
+  const label=v==='OK'?'APROVADO':v==='FALHA'?'REPROVADO':'PENDENTE';
+  const obs=sess.r[t.id+'_obs']?`<div style="font-size:12px;color:var(--sub);padding-bottom:6px">Obs: ${sess.r[t.id+'_obs']}</div>`:'';
+  html+=`<div class="rrow"><span>${t.name}</span><span class="${cls}">${label}</span></div>${obs}`;
+ });
+ html+='</div>';
+ html+=`<button class="btn btn-blue" onclick="shareReport()">📤 Compartilhar Resultado</button>`;
+ b.innerHTML=html;
+}
+
+// ===== HISTORY =====
+async function renderHistory(){
+ await DB.open();
+ const all=await DB.all();
+ const b=document.getElementById('histBody');
+ if(!all.length){b.innerHTML='<div class="card"><p style="text-align:center;color:var(--sub)">Nenhum diagnóstico salvo.</p></div>';return}
+ b.innerHTML='';
+ all.sort((a,c)=>c.id-a.id).forEach(s=>{
+  const ok=Object.values(s.r).filter(v=>v==='OK').length;
+  const fail=Object.values(s.r).filter(v=>v==='FALHA').length;
+  const d=document.createElement('div');d.className='ti';
+  d.innerHTML=`<div><h3>${new Date(s.date).toLocaleDateString('pt-BR')}</h3><p style="margin-top:2px"><span style="color:var(--green)">✓${ok}</span>  <span style="color:var(--red)">✗${fail}</span></p></div><span style="color:var(--blue);font-size:14px">Abrir</span>`;
+  d.onclick=()=>{sess=s;go('diag')};
+  b.appendChild(d);
+ });
+}
+
+// ===== AIRDROP / SHARE =====
+function shareAirDrop(){
+ const url=location.origin+location.pathname+'?remote=1';
+ if(navigator.share){
+  navigator.share({title:'iPhone Check Pro',text:'Abra para testar este iPhone:',url}).catch(()=>{});
+ }else{
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url);alert('Link copiado!')}
+  else prompt('Copie o link:',url);
+ }
+}
+function shareReport(){
+ if(!sess)return;
+ let txt='DIAGNÓSTICO iPHONE\n'+new Date(sess.date).toLocaleString('pt-BR')+'\n\n';
+ TESTS.forEach(t=>{const v=sess.r[t.id];txt+=t.name+': '+(v==='OK'?'APROVADO':v==='FALHA'?'REPROVADO':'PENDENTE')+'\n'});
+ if(navigator.share){navigator.share({title:'Diagnóstico iPhone',text:txt}).catch(()=>{})}
+ else{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt);alert('Resultado copiado!')}else prompt('Copie:',txt)}
+}
+
+// ===== REMOTE MODE =====
+function checkRemote(){
+ if(new URLSearchParams(location.search).get('remote')==='1'){
+  document.getElementById('btnAir').style.display='none';
+ }
+}
+
+// ===== INIT =====
+DB.open().then(()=>{checkRemote()});
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
